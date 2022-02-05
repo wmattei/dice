@@ -1,0 +1,30 @@
+version: "3.9"
+services:
+  db:
+    container_name: dice_db
+    image: postgres:12.5
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=mysecretpassword
+      - POSTGRES_DB=dice
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -h db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    container_name: dice_api
+    build:
+      dockerfile: Dockerfile
+    environment:
+      DATABASE_URL: postgres://postgres:mysecretpassword@db:5432/dice
+    links:
+      - db
+    ports: 
+      - "3000:3000"
+    depends_on:
+      db:
+        condition: service_healthy
